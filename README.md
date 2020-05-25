@@ -4,6 +4,8 @@
 
 Replication & Full Load Application for multiple databases to s3
 
+By [Perceptech Data Software Foundation](https://sites.google.com/perceptechdata.com/pd-software-foundation/home)
+
 ## How to use
 
 Please make use of the [Wiki](https://github.com/DirksCGM/DBtoS3/wiki) which will be updated continuously with information.
