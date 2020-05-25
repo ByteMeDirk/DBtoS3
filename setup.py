@@ -3,6 +3,13 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+requires = [
+    'boto3',
+    'numpy',
+    'psycopg2',
+    'pandas'
+]
+
 setuptools.setup(
     name='dbtos3',
     version='0.0.1',
@@ -14,11 +21,7 @@ setuptools.setup(
     url='https://github.com/DirksCGM/DBtoS3',
     classifiers=['Programming Language :: Python :: 3 :: Only'],
     packages=setuptools.find_packages(),
-    install_requires=[
-        'boto3',
-        'numpy',
-        'psycopg2'
-    ],
+    install_requires=requires,
     python_requires='>=3.6',
     keywords=['postgres', 's3', 'aws', 'mysql']
 )

@@ -7,7 +7,7 @@ import boto3
 import pandas as pd
 import psycopg2
 
-from DB2S3.sqlite_model import catalogue
+from dbtos3.sqlite_model import catalogue
 
 try:
     os.mkdir('Logs')
@@ -47,10 +47,10 @@ class ReplicationMethodsPostgreSQL:
             password=self.password
         )
 
-        self.s3client = boto3.client("s3",
-                                     region_name=region_name,
-                                     aws_access_key_id=aws_access_key_id,
-                                     aws_secret_access_key=aws_secret_access_key)
+        # self.s3client = boto3.client("s3",
+        #                              region_name=region_name,
+        #                              aws_access_key_id=aws_access_key_id,
+        #                              aws_secret_access_key=aws_secret_access_key)
 
         self.s3resource = boto3.resource('s3',
                                          region_name=region_name,

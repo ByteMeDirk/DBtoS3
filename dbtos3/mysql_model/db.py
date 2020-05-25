@@ -7,7 +7,7 @@ import boto3
 import mysql.connector
 import pandas as pd
 
-from DB2S3.sqlite_model import catalogue
+from dbtos3.sqlite_model import catalogue
 
 try:
     os.mkdir('Logs')
@@ -49,10 +49,10 @@ class ReplicationMethodsMySQL:
             port=self.port
         )
 
-        self.s3client = boto3.client("s3",
-                                     region_name=region_name,
-                                     aws_access_key_id=aws_access_key_id,
-                                     aws_secret_access_key=aws_secret_access_key)
+        # self.s3client = boto3.client("s3",
+        #                              region_name=region_name,
+        #                              aws_access_key_id=aws_access_key_id,
+        #                              aws_secret_access_key=aws_secret_access_key)
 
         self.s3resource = boto3.resource('s3',
                                          region_name=region_name,
