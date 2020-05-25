@@ -1,6 +1,8 @@
-import dbtos3
 import os
+
 from dotenv import load_dotenv
+
+import dbtos3
 
 # this loads environment variables
 APP_ROOT = os.path.join(os.path.dirname(__file__))  # refers to application_top
@@ -11,6 +13,7 @@ postgres = dbtos3.ReplicationMethodsPostgreSQL(
     database=os.getenv('POSTGRES_DATABASE'),
     user=os.getenv('POSTGRES_USER'),
     password=os.getenv('POSTGRES_PASSWORD'),
+    port=os.getenv('POSTGRES_PORT'),
     region_name=os.getenv('AWS_REGION'),
     aws_access_key_id=os.getenv('AWS_SECRET_KEY_ID'),
     aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
@@ -21,7 +24,7 @@ postgres = dbtos3.ReplicationMethodsPostgreSQL(
 
 def full_load_methods(args):
     for a in args:
-        postgres.day_level_full_load(days=10, table=a, column='updated_at')
+        postgres.day_level_full_load(days=25, table=a, column='updated_at')
 
 
 def replicate_methods(args):
@@ -32,6 +35,6 @@ def replicate_methods(args):
 if __name__ == '__main__':
     tables = ['users', 'orders']
 
-    full_load_methods(tables)
-    # replicate_methods(tables)
+    # full_load_methods(tables)
+    replicate_methods(tables)
     postgres.close_connection()
