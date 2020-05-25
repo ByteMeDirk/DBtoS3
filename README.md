@@ -4,6 +4,8 @@
 
 Replication & Full Load Application for multiple databases to s3
 
+[![DeepSource](https://static.deepsource.io/deepsource-badge-light-mini.svg)](https://deepsource.io/gh/DirksCGM/DBtoS3/?ref=repository-badge)
+
 By [Perceptech Data Software Foundation](https://sites.google.com/perceptechdata.com/pd-software-foundation/home)
 
 ## How to use
