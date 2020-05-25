@@ -1,12 +1,11 @@
 import logging
 import os
 from datetime import datetime
-from io import StringIO, BytesIO
 
-import boto3
 import mysql.connector
 import pandas as pd
 
+from dbtos3.s3_model import service
 from dbtos3.sqlite_model import catalogue
 
 try:
@@ -41,6 +40,14 @@ class ReplicationMethodsMySQL:
         self.s3bucket = s3bucket
         self.s3main_key = main_key
 
+        self.s3_service = service.S3ServiceMethod(
+            region_name=region_name,
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+            s3bucket=s3bucket,
+            main_key=main_key
+        )
+
         self.connection = mysql.connector.connect(
             host=self.host,
             user=self.user,
@@ -48,16 +55,6 @@ class ReplicationMethodsMySQL:
             database=self.database,
             port=self.port
         )
-
-        # self.s3client = boto3.client("s3",
-        #                              region_name=region_name,
-        #                              aws_access_key_id=aws_access_key_id,
-        #                              aws_secret_access_key=aws_secret_access_key)
-
-        self.s3resource = boto3.resource('s3',
-                                         region_name=region_name,
-                                         aws_access_key_id=aws_access_key_id,
-                                         aws_secret_access_key=aws_secret_access_key)
 
         self.cursor = self.connection.cursor()
 
@@ -88,7 +85,7 @@ class ReplicationMethodsMySQL:
                                   table_name=table, app_run_time=datetime.now(), database='mysql')
 
             # use write to s3 method to send data frame directly to s3
-            self.write_to_s3(data_frame=data_frame, table=table)
+            self.s3_service.write_to_s3(data_frame=data_frame, table=table)
 
         except (Exception, pd.Error) as error:
             logging.info('Error while generating data with Pandas: {}'.format(error))
@@ -98,63 +95,6 @@ class ReplicationMethodsMySQL:
 
         finally:
             logging.info('loading data from {} at {} days based on column {} done!'.format(table, days, column))
-
-    def write_to_s3(self, table, data_frame):
-        """
-        gathers data frame object and parses it to s3 .csv object
-
-        :param table: string. the table that is being replicated or loaded in order to name the directory accordingly
-        :param data_frame: df object. the data frame object to be parsed into and s3 object
-        :return: writes object directly to s3
-        """
-        try:
-            logging.info('writing dataframe of table {} to s3'.format(table))
-            if data_frame.empty:
-                logging.info('no data in {} needs to be sent to s3'.format(table))
-            else:
-                csv_buf = StringIO()
-                data_frame.to_csv(csv_buf)
-                self.s3resource.Object(self.s3bucket,
-                                       '{1}/{0}/{0}-{2}.csv'.format(table, self.s3main_key, datetime.now())).put(
-                    Body=csv_buf.getvalue())
-
-        except Exception as error:
-            logging.info('Error while trying to send {} data to s3: {}'.format(table, error))
-
-        except (Exception, pd.Error) as error:
-            logging.info('Error while generating data with Pandas: {}'.format(error))
-
-        finally:
-            logging.info('loading data from {} to s3 done!'.format(table))
-
-    def get_max_timestamp_from_s3(self, table, column):
-        """
-        gathers respective csv object from s3 and collects its max time stamp from the relative column
-        :param table: string. the table that will have its max date extracted
-        :param column: string. the column that satisfies the max date requirement
-        :return: timestamp
-        """
-        try:
-            logging.info('getting max timestamp from {} based on column {}'.format(table, column))
-
-            # connect to the key and bucket
-            obj = self.s3client.get_object(Bucket=self.s3bucket, Key='{1}/{0}/{0}.csv'.format(table, self.s3main_key))
-
-            # parse data into a data frame
-            data_frame = pd.read_csv(BytesIO(obj['Body'].read()))
-            # find max value in updated_at column (warning comes up here that can be ignored)
-            max_update_time = data_frame[column].max()
-
-            return max_update_time
-
-        except Exception as error:
-            logging.info('Error while trying to send {} data to s3: {}'.format(table, error))
-
-        except (Exception, pd.Error) as error:
-            logging.info('Error while generating data with Pandas: {}'.format(error))
-
-        finally:
-            logging.info('loading data from {} to s3 done!'.format(table))
 
     @staticmethod
     def update_catalogue(column_name, column_time, table_name, app_run_time, database):
@@ -202,7 +142,7 @@ class ReplicationMethodsMySQL:
                                                               app_run_time=datetime.now(),
                                                               database='mysql')
 
-                self.write_to_s3(table=table, data_frame=data_frame)
+                self.s3_service.write_to_s3(data_frame=data_frame, table=table)
 
         except (Exception, pd.Error) as error:
             logging.info('Error while generating data with Pandas: {}'.format(error))
