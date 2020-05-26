@@ -27,6 +27,18 @@ class ReplicationMethodsMySQL:
 
     def __init__(self, host, database, user, password, region_name, aws_access_key_id, aws_secret_access_key, s3bucket,
                  main_key, port):
+        """
+        :param host: host name for db
+        :param database: db name
+        :param user: user name
+        :param password: user password
+        :param port: host port
+        :param region_name: aws region
+        :param aws_access_key_id: aws user key
+        :param aws_secret_access_key: aws user password
+        :param s3bucket: bucket to write to
+        :param main_key: folder to write to
+        """
         self.host = host
         self.database = database
         self.user = user
@@ -87,9 +99,6 @@ class ReplicationMethodsMySQL:
             # use write to s3 method to send data frame directly to s3
             self.s3_service.write_to_s3(data_frame=data_frame, table=table)
 
-        except (Exception, pd.Error) as error:
-            logging.info('Error while generating data with Pandas: {}'.format(error))
-
         except Exception as error:
             logging.info('Error while loading table from MySQL: {}'.format(error))
 
@@ -100,7 +109,7 @@ class ReplicationMethodsMySQL:
     def update_catalogue(column_name, column_time, table_name, app_run_time, database):
         update_catalogue = catalogue.CatalogueMethods()
         update_catalogue.update_catalogue(column_name=column_name, column_time=column_time, table_name=table_name,
-                                          app_run_time=app_run_time, database=database)
+                                          app_run_time=app_run_time, data_source=database)
 
     def replicate_table(self, table, column):
         """
@@ -115,10 +124,10 @@ class ReplicationMethodsMySQL:
             logging.info('replicating table {} based on timestamp {}'.format(table, column))
 
             # get max update time first from catalogue
-            max_update_time = catalogue.CatalogueMethods().get_max_time_from_catalogue(table=table, database='mysql')
+            max_update_time = catalogue.CatalogueMethods().get_max_time_from_catalogue(table=table, data_source='mysql')
 
             # construct query to get nth days of data from table & all column names of that table
-            if len(max_update_time) == 0:
+            if max_update_time is None:
                 logging.info('no need to update {}!'.format(table))
             else:
                 data_query = "select * from {} where {} > '{}'".format(table, column, max_update_time)
@@ -140,12 +149,9 @@ class ReplicationMethodsMySQL:
                                                                                                     column=column),
                                                               table_name=table,
                                                               app_run_time=datetime.now(),
-                                                              database='mysql')
+                                                              data_source='mysql')
 
                 self.s3_service.write_to_s3(data_frame=data_frame, table=table)
-
-        except (Exception, pd.Error) as error:
-            logging.info('Error while generating data with Pandas: {}'.format(error))
 
         except Exception as error:
             logging.info('Error while loading table from MySQL: {}'.format(error))
@@ -160,9 +166,6 @@ class ReplicationMethodsMySQL:
             data_query = "select max({}) from {}".format(column, table)
             self.cursor.execute(data_query)
             return self.cursor.fetchall()[0][0]
-
-        except (Exception, pd.Error) as error:
-            logging.info('Error while generating data with Pandas: {}'.format(error))
 
         except Exception as error:
             logging.info('Error while loading table from MySQL: {}'.format(error))
