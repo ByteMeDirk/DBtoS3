@@ -12,11 +12,19 @@ By [Perceptech Data Software Foundation](https://perceptechdata.com/perceptech-d
 
 Please make use of the [Wiki](https://github.com/DirksCGM/DBtoS3/wiki) which will be updated continuously with information.
 
-## Current Support
-* [PostgreSQL to S3](https://github.com/DirksCGM/DBtoS3/wiki/Setting-Up-PostgreSQL)
-* [MySQL to S3](https://github.com/DirksCGM/DBtoS3/wiki/Setting-Up-MySQL)
+## Current features
 
-## Support my work by buying me a cup of coffee!
-<div align="center">
-  <img src="https://raw.githubusercontent.com/DirksCGM/DBtoS3/master/static/QR%20Code.png"><br>
-</div>
+### Databases
+* [PostgreSQL to S3 - full load and replication](https://github.com/DirksCGM/DBtoS3/wiki/PostgreSQL)
+* [MySQL to S3 - full load and replication](https://github.com/DirksCGM/DBtoS3/wiki/MySQL)
+
+### Applications
+* [Sentry to S3 - full load and replication](https://github.com/DirksCGM/DBtoS3/wiki/Sentry)
+    * organization projects
+    * organisation project events
+    
+*More will be added over time*
+
+## Development
+This project is developed and maintained by the [Perceptech Data Software Foundation](https://perceptechdata.com/perceptech-data-software-foundation/)
+![pdsf](https://github.com/DirksCGM/DBtoS3/wiki/static/PDSF.png)
