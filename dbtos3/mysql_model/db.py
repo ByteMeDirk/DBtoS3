@@ -99,9 +99,6 @@ class ReplicationMethodsMySQL:
             # use write to s3 method to send data frame directly to s3
             self.s3_service.write_to_s3(data_frame=data_frame, table=table)
 
-        except (Exception, pd.Error) as error:
-            logging.info('Error while generating data with Pandas: {}'.format(error))
-
         except Exception as error:
             logging.info('Error while loading table from MySQL: {}'.format(error))
 
@@ -130,7 +127,7 @@ class ReplicationMethodsMySQL:
             max_update_time = catalogue.CatalogueMethods().get_max_time_from_catalogue(table=table, data_source='mysql')
 
             # construct query to get nth days of data from table & all column names of that table
-            if len(max_update_time) == 0:
+            if max_update_time is None:
                 logging.info('no need to update {}!'.format(table))
             else:
                 data_query = "select * from {} where {} > '{}'".format(table, column, max_update_time)
@@ -156,9 +153,6 @@ class ReplicationMethodsMySQL:
 
                 self.s3_service.write_to_s3(data_frame=data_frame, table=table)
 
-        except (Exception, pd.Error) as error:
-            logging.info('Error while generating data with Pandas: {}'.format(error))
-
         except Exception as error:
             logging.info('Error while loading table from MySQL: {}'.format(error))
 
@@ -172,9 +166,6 @@ class ReplicationMethodsMySQL:
             data_query = "select max({}) from {}".format(column, table)
             self.cursor.execute(data_query)
             return self.cursor.fetchall()[0][0]
-
-        except (Exception, pd.Error) as error:
-            logging.info('Error while generating data with Pandas: {}'.format(error))
 
         except Exception as error:
             logging.info('Error while loading table from MySQL: {}'.format(error))

@@ -163,7 +163,7 @@ class SentryReplicationMethod:
             # select all relevant data from data frame
             data_frame = data_frame[data_frame['dateCreated'] >= max_time]
 
-            if len(max_time) == 0:
+            if max_time is None:
                 logging.info('no need to update {}!'.format(project))
             else:
                 # updates catalogue
@@ -216,7 +216,7 @@ class SentryReplicationMethod:
             # select all relevant data from data frame
             data_frame = data_frame[data_frame['lastSeen'] >= max_time]
 
-            if len(max_time) == 0:
+            if max_time is None:
                 logging.info('no need to update {}!'.format(project))
             else:
                 # updates catalogue

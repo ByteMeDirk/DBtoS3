@@ -100,9 +100,6 @@ class ReplicationMethodsPostgreSQL:
         except (Exception, psycopg2.Error) as error:
             logging.info('Error while loading table from PostgreSQL: {}'.format(error))
 
-        except (Exception, pd.Error) as error:
-            logging.info('Error while generating data with Pandas: {}'.format(error))
-
         finally:
             logging.info('loading data from {} at {} days based on column {} done!'.format(table, days, column))
 
@@ -128,7 +125,7 @@ class ReplicationMethodsPostgreSQL:
             max_update_time = catalogue.CatalogueMethods().get_max_time_from_catalogue(table=table, data_source='postgres')
 
             # construct query to get nth days of data from table & all column names of that table
-            if len(max_update_time) == 0:
+            if max_update_time is None:
                 logging.info('no need to update {}!'.format(table))
             else:
                 data_query = "select * from {} where {} > '{}'".format(table, column, max_update_time)
@@ -156,9 +153,6 @@ class ReplicationMethodsPostgreSQL:
         except (Exception, psycopg2.Error) as error:
             logging.info('Error while loading table from PostgreSQL: {}'.format(error))
 
-        except (Exception, pd.Error) as error:
-            logging.info('Error while generating data with Pandas: {}'.format(error))
-
         finally:
             logging.info('loading data from {} based on column {} done!'.format(table, column))
 
@@ -178,9 +172,6 @@ class ReplicationMethodsPostgreSQL:
 
         except (Exception, psycopg2.Error) as error:
             logging.info('Error while loading table from PostgreSQL: {}'.format(error))
-
-        except (Exception, pd.Error) as error:
-            logging.info('Error while generating data with Pandas: {}'.format(error))
 
         finally:
             logging.info('getting max time from {} complete! '.format(table))
