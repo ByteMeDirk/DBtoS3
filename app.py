@@ -37,34 +37,34 @@ def website_db_replicate_methods(args):
         website_db.replicate_table(table=a, column='updated_at')
 
 
-###
-# Setting up MySQL Replication and full-load
-###
-
-mysql_db = dbtos3.ReplicationMethodsMySQL(
-    host=os.getenv('MYSQL_HOST'),
-    database=os.getenv('MYSQL_DATABASE'),
-    user=os.getenv('MYSQL_USER'),
-    password=os.getenv('MYSQL_PASSWORD'),
-    region_name=os.getenv('AWS_REGION'),
-    aws_access_key_id=os.getenv('AWS_SECRET_KEY_ID'),
-    aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
-    s3bucket=os.getenv('S3_BUCKET'),
-    main_key=os.getenv('MYSQL_S3_MAIN_KEY'),
-    port=os.getenv('MYSQL_PORT')
-)
-
-
-def mysql_db_full_load_methods(args):
-    for a in args:
-        print('--   new process {}  ----------------------------'.format(a))
-        mysql_db.day_level_full_load(days=10, table=a, column='updated_at')
-
-
-def mysql_db_replicate_methods(args):
-    for a in args:
-        print('--   new process {}  ----------------------------'.format(a))
-        mysql_db.replicate_table(table=a, column='updated_at')
+# ###
+# # Setting up MySQL Replication and full-load
+# ###
+#
+# mysql_db = dbtos3.ReplicationMethodsMySQL(
+#     host=os.getenv('MYSQL_HOST'),
+#     database=os.getenv('MYSQL_DATABASE'),
+#     user=os.getenv('MYSQL_USER'),
+#     password=os.getenv('MYSQL_PASSWORD'),
+#     region_name=os.getenv('AWS_REGION'),
+#     aws_access_key_id=os.getenv('AWS_SECRET_KEY_ID'),
+#     aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
+#     s3bucket=os.getenv('S3_BUCKET'),
+#     main_key=os.getenv('MYSQL_S3_MAIN_KEY'),
+#     port=os.getenv('MYSQL_PORT')
+# )
+#
+#
+# def mysql_db_full_load_methods(args):
+#     for a in args:
+#         print('--   new process {}  ----------------------------'.format(a))
+#         mysql_db.day_level_full_load(days=10, table=a, column='updated_at')
+#
+#
+# def mysql_db_replicate_methods(args):
+#     for a in args:
+#         print('--   new process {}  ----------------------------'.format(a))
+#         mysql_db.replicate_table(table=a, column='updated_at')
 
 
 ###
@@ -101,10 +101,10 @@ if __name__ == '__main__':
     website_db_replicate_methods(website_db_tables)
     website_db.close_connection()
 
-    mysql_tables = ['tasks']
-    # mysql_db_full_load_methods(mysql_tables)
-    mysql_db_replicate_methods(mysql_tables)
-    mysql_db.close_connection()
+    # mysql_tables = ['tasks']
+    # # mysql_db_full_load_methods(mysql_tables)
+    # mysql_db_replicate_methods(mysql_tables)
+    # mysql_db.close_connection()
 
     sentry_projects = ['website-frontend']
     # sentry_full_load_methods(sentry_projects)
