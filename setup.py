@@ -24,5 +24,5 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=requires,
     python_requires='>=3.6',
-    keywords=['postgres', 's3', 'aws', 'mysql']
+    keywords=['postgresql', 's3', 'aws', 'mysql', 'sentry', 'replication', 'sql']
 )
