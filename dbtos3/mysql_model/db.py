@@ -27,6 +27,18 @@ class ReplicationMethodsMySQL:
 
     def __init__(self, host, database, user, password, region_name, aws_access_key_id, aws_secret_access_key, s3bucket,
                  main_key, port):
+        """
+        :param host: host name for db
+        :param database: db name
+        :param user: user name
+        :param password: user password
+        :param port: host port
+        :param region_name: aws region
+        :param aws_access_key_id: aws user key
+        :param aws_secret_access_key: aws user password
+        :param s3bucket: bucket to write to
+        :param main_key: folder to write to
+        """
         self.host = host
         self.database = database
         self.user = user
