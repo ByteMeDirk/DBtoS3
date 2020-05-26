@@ -101,6 +101,11 @@ class GetSentryEventsData:
 
 class SentryReplicationMethod:
     def __init__(self, **kwargs):
+        """
+        :param kwargs:
+        auth_token=api bearer token for authorization
+        organisation=your company or organisation
+        """
         self.organization = kwargs['organization']
         self.auth_token = kwargs['auth_token']
 
@@ -118,45 +123,108 @@ class SentryReplicationMethod:
     def update_catalogue(column_name, column_time, table_name, app_run_time, database):
         update_catalogue = catalogue.CatalogueMethods()
         update_catalogue.update_catalogue(column_name=column_name, column_time=column_time, table_name=table_name,
-                                          app_run_time=app_run_time, database=database)
+                                          app_run_time=app_run_time, data_source=database)
 
     def full_load_all_events(self, project):
+        """
+        full loads all event data for a project
+        :param project: the name of your sentry project
+        :return: writes directly to s3
+        """
         try:
             logging.info('Attempting full load of sentry project: {}'.format(project))
             # get all data
             data_frame = self.sentry.list_project_events(project=project, organization=self.organization)
 
             self.update_catalogue(column_name=project, column_time=data_frame['dateCreated'].max(),
-                                  table_name='dateCreated', app_run_time=datetime.now(), database='sentry')
+                                  table_name='dateCreated', app_run_time=datetime.now(), database='sentry-events')
 
             # use write to s3 method to send data frame directly to s3
-            self.s3_service.write_to_s3(data_frame=data_frame, table=project)
-        except (Exception, pd.Error) as error:
-            logging.info('Error while generating data with Pandas: {}'.format(error))
+            self.s3_service.write_to_s3(data_frame=data_frame, table=project + '-events')
+
         except Exception as error:
             logging.info('Error while doing a sentry full load: {}'.format(error))
 
     def replicate_all_events(self, project):
+        """
+        replicates all event data for a project
+        :param project: the name of your sentry project
+        :return: writes directly to s3
+        """
         try:
             logging.info('Attempting replication of sentry project: {}'.format(project))
             # get all data
             data_frame = self.sentry.list_project_events(project=project, organization=self.organization)
 
             # get max time for replication
-            max_time = catalogue.CatalogueMethods().get_max_time_from_catalogue(table=project, database='sentry')
+            max_time = catalogue.CatalogueMethods().get_max_time_from_catalogue(table=project,
+                                                                                data_source='sentry-events')
 
             # select all relevant data from data frame
             data_frame = data_frame[data_frame['dateCreated'] >= max_time]
 
+            if len(max_time) == 0:
+                logging.info('no need to update {}!'.format(project))
+            else:
+                # updates catalogue
+                self.update_catalogue(column_name=project, column_time=data_frame['dateCreated'].max(),
+                                      table_name='dateCreated', app_run_time=datetime.now(), database='sentry-events')
+
+                # use write to s3 method to send data frame directly to s3
+                self.s3_service.write_to_s3(data_frame=data_frame, table=project + '-events')
+
+        except Exception as error:
+            logging.info('Error while doing a sentry full load: {}'.format(error))
+
+    def full_load_all_project_issues(self, project):
+        """
+        full loads all project issues
+        :param project: the name of your sentry project
+        :return: writes directly to s3
+        """
+        try:
+            logging.info('Attempting full load of sentry project issues: {}'.format(project))
+            # get all data
+            data_frame = self.sentry.list_project_issues(project=project, organization=self.organization)
+
             # updates catalogue
-            self.update_catalogue(column_name=project, column_time=data_frame['dateCreated'].max(),
-                                  table_name='dateCreated', app_run_time=datetime.now(), database='sentry')
+            self.update_catalogue(column_name=project, column_time=data_frame['lastSeen'].max(),
+                                  table_name='lastSeen', app_run_time=datetime.now(),
+                                  database='sentry-project-issues')
 
             # use write to s3 method to send data frame directly to s3
-            self.s3_service.write_to_s3(data_frame=data_frame, table=project)
+            self.s3_service.write_to_s3(data_frame=data_frame, table=project + '-project-issues')
 
-        except (Exception, pd.Error) as error:
-            logging.info('Error while generating data with Pandas: {}'.format(error))
+        except Exception as error:
+            logging.info('Error while doing a sentry full load: {}'.format(error))
+
+    def replicate_all_project_issues(self, project):
+        """
+        replicates all project issues
+        :param project: the name of your sentry project
+        :return: writes directly to s3
+        """
+        try:
+            logging.info('Attempting replication of sentry project issues: {}'.format(project))
+            # get all data
+            data_frame = self.sentry.list_project_issues(project=project, organization=self.organization)
+
+            # get max time for replication
+            max_time = catalogue.CatalogueMethods().get_max_time_from_catalogue(table=project,
+                                                                                data_source='sentry-project-issues')
+
+            # select all relevant data from data frame
+            data_frame = data_frame[data_frame['lastSeen'] >= max_time]
+
+            if len(max_time) == 0:
+                logging.info('no need to update {}!'.format(project))
+            else:
+                # updates catalogue
+                self.update_catalogue(column_name=project, column_time=data_frame['lastSeen'].max(),
+                                      table_name='lastSeen', app_run_time=datetime.now(), database='sentry-events')
+
+                # use write to s3 method to send data frame directly to s3
+                self.s3_service.write_to_s3(data_frame=data_frame, table=project + '-project-issues')
 
         except Exception as error:
             logging.info('Error while doing a sentry full load: {}'.format(error))

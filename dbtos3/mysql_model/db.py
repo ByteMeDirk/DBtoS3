@@ -112,7 +112,7 @@ class ReplicationMethodsMySQL:
     def update_catalogue(column_name, column_time, table_name, app_run_time, database):
         update_catalogue = catalogue.CatalogueMethods()
         update_catalogue.update_catalogue(column_name=column_name, column_time=column_time, table_name=table_name,
-                                          app_run_time=app_run_time, database=database)
+                                          app_run_time=app_run_time, data_source=database)
 
     def replicate_table(self, table, column):
         """
@@ -127,7 +127,7 @@ class ReplicationMethodsMySQL:
             logging.info('replicating table {} based on timestamp {}'.format(table, column))
 
             # get max update time first from catalogue
-            max_update_time = catalogue.CatalogueMethods().get_max_time_from_catalogue(table=table, database='mysql')
+            max_update_time = catalogue.CatalogueMethods().get_max_time_from_catalogue(table=table, data_source='mysql')
 
             # construct query to get nth days of data from table & all column names of that table
             if len(max_update_time) == 0:
@@ -152,7 +152,7 @@ class ReplicationMethodsMySQL:
                                                                                                     column=column),
                                                               table_name=table,
                                                               app_run_time=datetime.now(),
-                                                              database='mysql')
+                                                              data_source='mysql')
 
                 self.s3_service.write_to_s3(data_frame=data_frame, table=table)
 
