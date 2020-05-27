@@ -136,8 +136,8 @@ class SentryReplicationMethod:
             # get all data
             data_frame = self.sentry.list_project_events(project=project, organization=self.organization)
 
-            self.update_catalogue(column_name=project, column_time=data_frame['dateCreated'].max(),
-                                  table_name='dateCreated', app_run_time=datetime.now(), database='sentry-events')
+            self.update_catalogue(column_name='dateCreated', column_time=data_frame['dateCreated'].max(),
+                                  table_name=project, app_run_time=datetime.now(), database='sentry-events')
 
             # use write to s3 method to send data frame directly to s3
             self.s3_service.write_to_s3(data_frame=data_frame, table=project + '-events')
@@ -167,8 +167,8 @@ class SentryReplicationMethod:
                 logging.info('no need to update {}!'.format(project))
             else:
                 # updates catalogue
-                self.update_catalogue(column_name=project, column_time=data_frame['dateCreated'].max(),
-                                      table_name='dateCreated', app_run_time=datetime.now(), database='sentry-events')
+                self.update_catalogue(column_name='dateCreated', column_time=data_frame['dateCreated'].max(),
+                                      table_name=project, app_run_time=datetime.now(), database='sentry-events')
 
                 # use write to s3 method to send data frame directly to s3
                 self.s3_service.write_to_s3(data_frame=data_frame, table=project + '-events')
@@ -188,8 +188,8 @@ class SentryReplicationMethod:
             data_frame = self.sentry.list_project_issues(project=project, organization=self.organization)
 
             # updates catalogue
-            self.update_catalogue(column_name=project, column_time=data_frame['lastSeen'].max(),
-                                  table_name='lastSeen', app_run_time=datetime.now(),
+            self.update_catalogue(column_name='lastSeen', column_time=data_frame['lastSeen'].max(),
+                                  table_name=project, app_run_time=datetime.now(),
                                   database='sentry-project-issues')
 
             # use write to s3 method to send data frame directly to s3
@@ -220,8 +220,8 @@ class SentryReplicationMethod:
                 logging.info('no need to update {}!'.format(project))
             else:
                 # updates catalogue
-                self.update_catalogue(column_name=project, column_time=data_frame['lastSeen'].max(),
-                                      table_name='lastSeen', app_run_time=datetime.now(), database='sentry-events')
+                self.update_catalogue(column_name='lastSeen', column_time=data_frame['lastSeen'].max(),
+                                      table_name=project, app_run_time=datetime.now(), database='sentry-events')
 
                 # use write to s3 method to send data frame directly to s3
                 self.s3_service.write_to_s3(data_frame=data_frame, table=project + '-project-issues')
