@@ -8,9 +8,7 @@ requires = [
     'numpy',
     'psycopg2',
     'pandas',
-    'mysql-connector-python',
-    'dotenv',
-    'requests'
+    'mysql-connector-python'
 ]
 
 setuptools.setup(
