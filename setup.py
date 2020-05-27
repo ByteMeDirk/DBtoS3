@@ -8,12 +8,14 @@ requires = [
     'numpy',
     'psycopg2',
     'pandas',
-    'mysql-connector-python'
+    'mysql-connector-python',
+    'dotenv',
+    'requests'
 ]
 
 setuptools.setup(
     name='dbtos3',
-    version='0.0.2-alpha',
+    version='0.0.2-beta',
     description='Replication & Full Load Application for multiple databases to s3',
     long_description=long_description,
     long_description_content_type="text/markdown",

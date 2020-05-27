@@ -5,8 +5,8 @@
 Replication & Full Load Application for multiple databases to s3
 
 [![DeepSource](https://static.deepsource.io/deepsource-badge-light-mini.svg)](https://deepsource.io/gh/DirksCGM/DBtoS3/?ref=repository-badge)
-
-By [Perceptech Data Software Foundation](https://perceptechdata.com/perceptech-data-software-foundation/)
+[![Dependabot](https://badgen.net/dependabot/thepracticaldev/dev.to?icon=dependabot)](https://app.dependabot.com/accounts/DirksCGM/repos/266711720)
+[![Perceptech Data Software Foundation](./static/icon.png)](https://perceptechdata.com/perceptech-data-software-foundation/)
 
 ## How to use
 
@@ -27,4 +27,4 @@ Please make use of the [Wiki](https://github.com/DirksCGM/DBtoS3/wiki) which wil
 
 ## Development
 This project is developed and maintained by the [Perceptech Data Software Foundation](https://perceptechdata.com/perceptech-data-software-foundation/)
-![pdsf](https://github.com/DirksCGM/DBtoS3/wiki/static/PDSF.png)
+[![pdsf](https://github.com/DirksCGM/DBtoS3/wiki/static/PDSF.png)](https://perceptechdata.com/perceptech-data-software-foundation/)
