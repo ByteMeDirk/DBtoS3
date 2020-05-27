@@ -98,14 +98,14 @@ def sentry_replicate_methods(args):
 if __name__ == '__main__':
     website_db_tables = ['users']
     website_db_full_load_methods(website_db_tables)
-    website_db_replicate_methods(website_db_tables)
+    # website_db_replicate_methods(website_db_tables)
     website_db.close_connection()
 
     mysql_tables = ['tasks']
     mysql_db_full_load_methods(mysql_tables)
-    mysql_db_replicate_methods(mysql_tables)
+    # mysql_db_replicate_methods(mysql_tables)
     mysql_db.close_connection()
 
     sentry_projects = ['website-frontend']
     sentry_full_load_methods(sentry_projects)
-    sentry_replicate_methods(sentry_projects)
+    # sentry_replicate_methods(sentry_projects)

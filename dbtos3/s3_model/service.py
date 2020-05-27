@@ -1,6 +1,7 @@
+import calendar
 import logging
 import os
-from datetime import datetime
+import time
 from io import StringIO
 
 import boto3
@@ -54,8 +55,9 @@ class S3ServiceMethod:
                 csv_buf = StringIO()
                 data_frame.to_csv(csv_buf)
                 self.s3resource.Object(self.s3bucket,
-                                       '{1}/{0}/{0}-{2}.csv'.format(table, self.s3main_key, datetime.now())).put(
-                    Body=csv_buf.getvalue())
+                                       '{1}/{0}/{0}-{2}.csv'.format(table, self.s3main_key,
+                                                                    calendar.timegm(time.gmtime()))) \
+                    .put(Body=csv_buf.getvalue())
 
         except Exception as error:
             logging.info('Error while trying to send {} data to s3: {}'.format(table, error))
