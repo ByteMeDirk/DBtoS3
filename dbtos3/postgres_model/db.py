@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from datetime import datetime
@@ -16,7 +17,7 @@ except FileExistsError:
 for handler in logging.root.handlers[:]:
     logging.root.removeHandler(handler)
 
-logging.basicConfig(filename='Logs/postgresql.log', filemode='w', datefmt='%d-%b-%y %H:%M:%S',
+logging.basicConfig(filename='Logs/logs.log', filemode='w', datefmt='%d-%b-%y %H:%M:%S',
                     level=logging.INFO)
 
 
@@ -61,6 +62,12 @@ class ReplicationMethodsPostgreSQL:
         # ensures the catalogue exists
         catalogue.CatalogueMethods().set_up_catalogue()
 
+    @staticmethod
+    def update_catalogue(column_name, column_time, table_name, app_run_time, database):
+        update_catalogue = catalogue.CatalogueMethods()
+        update_catalogue.update_catalogue(column_name=column_name, column_time=column_time, table_name=table_name,
+                                          app_run_time=app_run_time, data_source=database)
+
     def day_level_full_load(self, days, table, column):
 
         """
@@ -88,26 +95,21 @@ class ReplicationMethodsPostgreSQL:
                 table_columns.append(c[0])
 
             self.cursor.execute(data_query)
-            data_frame = pd.DataFrame(self.cursor.fetchall(), columns=table_columns)
+            data = self.cursor.fetchall()
+            data_frame = pd.DataFrame(data, columns=table_columns)
 
             # updates catalogue
             self.update_catalogue(column_name=column, column_time=data_frame[column].max(),
                                   table_name=table, app_run_time=datetime.now(), database='postgres')
 
             # use write to s3 method to send data frame directly to s3
-            self.s3_service.write_to_s3(data_frame=data_frame, table=table)
+            self.s3_service.write_to_s3(data=data, table=table)
 
         except (Exception, psycopg2.Error) as error:
             logging.info('Error while loading table from PostgreSQL: {}'.format(error))
 
         finally:
             logging.info('loading data from {} at {} days based on column {} done!'.format(table, days, column))
-
-    @staticmethod
-    def update_catalogue(column_name, column_time, table_name, app_run_time, database):
-        update_catalogue = catalogue.CatalogueMethods()
-        update_catalogue.update_catalogue(column_name=column_name, column_time=column_time, table_name=table_name,
-                                          app_run_time=app_run_time, data_source=database)
 
     def replicate_table(self, table, column):
         """
@@ -117,38 +119,31 @@ class ReplicationMethodsPostgreSQL:
         :return: writes directly to s3
         """
         try:
-            table_columns = []
-
             logging.info('replicating table {} based on timestamp {}'.format(table, column))
 
             # get max update time first from catalogue
-            max_update_time = catalogue.CatalogueMethods().get_max_time_from_catalogue(table=table, data_source='postgres')
+            max_update_time = catalogue.CatalogueMethods().get_max_time_from_catalogue(table=table,
+                                                                                       data_source='postgres')
 
             # construct query to get nth days of data from table & all column names of that table
             if max_update_time is None:
                 logging.info('no need to update {}!'.format(table))
             else:
                 data_query = "select * from {} where {} > '{}'".format(table, column, max_update_time)
-                column_query = "select column_name from information_schema.columns where table_name = '{}'".format(
-                    table)
-
-                self.cursor.execute(column_query)
-                for c in self.cursor.fetchall():
-                    table_columns.append(c[0])
 
                 # if method will pass the data if there is no updates needed
                 self.cursor.execute(data_query)
 
-                data_frame = pd.DataFrame(self.cursor.fetchall(), columns=table_columns)
+                data = self.cursor.fetchall()
 
                 catalogue.CatalogueMethods().update_catalogue(column_name=column,
-                                                              column_time=self.get_max_time_from_db(table=table,
-                                                                                                    column=column),
+                                                              column_time=
+                                                              self.get_max_time_from_db(table=table, column=column),
                                                               table_name=table,
                                                               app_run_time=datetime.now(),
                                                               data_source='postgres')
 
-                self.s3_service.write_to_s3(data_frame=data_frame, table=table)
+                self.s3_service.write_to_s3(data=data, table=table)
 
         except (Exception, psycopg2.Error) as error:
             logging.info('Error while loading table from PostgreSQL: {}'.format(error))

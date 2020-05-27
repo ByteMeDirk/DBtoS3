@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from datetime import datetime
@@ -16,7 +17,7 @@ except FileExistsError:
 for handler in logging.root.handlers[:]:
     logging.root.removeHandler(handler)
 
-logging.basicConfig(filename='Logs/mysql.log', filemode='w', datefmt='%d-%b-%y %H:%M:%S',
+logging.basicConfig(filename='Logs/logs.log', filemode='w', datefmt='%d-%b-%y %H:%M:%S',
                     level=logging.INFO)
 
 
@@ -73,6 +74,12 @@ class ReplicationMethodsMySQL:
         # ensures the catalogue exists
         catalogue.CatalogueMethods().set_up_catalogue()
 
+    @staticmethod
+    def update_catalogue(column_name, column_time, table_name, app_run_time, database):
+        update_catalogue = catalogue.CatalogueMethods()
+        update_catalogue.update_catalogue(column_name=column_name, column_time=column_time, table_name=table_name,
+                                          app_run_time=app_run_time, data_source=database)
+
     def day_level_full_load(self, days, table, column):
         try:
             logging.info('loading data from {} at {} days based on column {}'.format(table, days, column))
@@ -90,26 +97,21 @@ class ReplicationMethodsMySQL:
                 table_columns.append(c[0])
 
             self.cursor.execute(data_query)
-            data_frame = pd.DataFrame(self.cursor.fetchall(), columns=table_columns)
+            data = self.cursor.fetchall()
+            data_frame = pd.DataFrame(data, columns=table_columns)
 
             # updates catalogue
             self.update_catalogue(column_name=column, column_time=data_frame[column].max(),
                                   table_name=table, app_run_time=datetime.now(), database='mysql')
 
             # use write to s3 method to send data frame directly to s3
-            self.s3_service.write_to_s3(data_frame=data_frame, table=table)
+            self.s3_service.write_to_s3(data=data, table=table)
 
         except Exception as error:
             logging.info('Error while loading table from MySQL: {}'.format(error))
 
         finally:
             logging.info('loading data from {} at {} days based on column {} done!'.format(table, days, column))
-
-    @staticmethod
-    def update_catalogue(column_name, column_time, table_name, app_run_time, database):
-        update_catalogue = catalogue.CatalogueMethods()
-        update_catalogue.update_catalogue(column_name=column_name, column_time=column_time, table_name=table_name,
-                                          app_run_time=app_run_time, data_source=database)
 
     def replicate_table(self, table, column):
         """
@@ -119,8 +121,6 @@ class ReplicationMethodsMySQL:
         :return: writes directly to s3
         """
         try:
-            table_columns = []
-
             logging.info('replicating table {} based on timestamp {}'.format(table, column))
 
             # get max update time first from catalogue
@@ -131,18 +131,10 @@ class ReplicationMethodsMySQL:
                 logging.info('no need to update {}!'.format(table))
             else:
                 data_query = "select * from {} where {} > '{}'".format(table, column, max_update_time)
-                column_query = "show columns from {}".format(table)
-
-                self.cursor.execute(column_query)
-                column_data = self.cursor.fetchall()
-
-                for c in column_data:
-                    table_columns.append(c[0])
 
                 # if method will pass the data if there is no updates needed
                 self.cursor.execute(data_query)
-
-                data_frame = pd.DataFrame(self.cursor.fetchall(), columns=table_columns)
+                data = self.cursor.fetchall()
 
                 catalogue.CatalogueMethods().update_catalogue(column_name=column,
                                                               column_time=self.get_max_time_from_db(table=table,
@@ -151,7 +143,7 @@ class ReplicationMethodsMySQL:
                                                               app_run_time=datetime.now(),
                                                               data_source='mysql')
 
-                self.s3_service.write_to_s3(data_frame=data_frame, table=table)
+                self.s3_service.write_to_s3(data=data, table=table)
 
         except Exception as error:
             logging.info('Error while loading table from MySQL: {}'.format(error))

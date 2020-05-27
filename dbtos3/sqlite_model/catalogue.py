@@ -10,7 +10,7 @@ except FileExistsError:
 for handler in logging.root.handlers[:]:
     logging.root.removeHandler(handler)
 
-logging.basicConfig(filename='Logs/catalogue.log', filemode='w', datefmt='%d-%b-%y %H:%M:%S',
+logging.basicConfig(filename='Logs/logs.log', filemode='w', datefmt='%d-%b-%y %H:%M:%S',
                     level=logging.INFO)
 
 
