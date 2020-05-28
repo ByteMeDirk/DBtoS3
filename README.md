@@ -4,6 +4,7 @@
 
 Replication & Full Load Application for multiple databases to s3
 
+![PyPI](https://img.shields.io/pypi/v/dbtos3)
 [![DeepSource](https://static.deepsource.io/deepsource-badge-light-mini.svg)](https://deepsource.io/gh/DirksCGM/DBtoS3/?ref=repository-badge)
 [![Dependabot](https://badgen.net/dependabot/thepracticaldev/dev.to?icon=dependabot)](https://app.dependabot.com/accounts/DirksCGM/repos/266711720)
 [![Perceptech Data Software Foundation](https://raw.githubusercontent.com/DirksCGM/DBtoS3/master/static/icon.png)](https://perceptechdata.com/perceptech-data-software-foundation/)
