@@ -4,7 +4,6 @@ from datetime import datetime
 
 import pandas as pd
 import psycopg2
-from psycopg2.extras import RealDictCursor
 
 from dbtos3.s3_model import service
 from dbtos3.sqlite_model import catalogue
@@ -57,7 +56,7 @@ class ReplicationMethodsPostgreSQL:
             port=self.port
         )
 
-        self.cursor = self.connection.cursor(cursor_factory=RealDictCursor)
+        self.cursor = self.connection.cursor()
 
         # ensures the catalogue exists
         catalogue.CatalogueMethods().set_up_catalogue()
@@ -91,12 +90,21 @@ class ReplicationMethodsPostgreSQL:
             column_query = "select column_name from information_schema.columns where table_name = '{}';".format(table)
 
             # execute queries and allocate them to objects
+
+            # gather all column names for data frame
             self.cursor.execute(column_query)
             for c in self.cursor.fetchall():
                 table_columns.append(c[0])
 
+            # substitute for real dictionary cursor to preserve the column names of the table
+            # querying from the database and simply parsing to json loses vital data, so the
+            # steps below gather the data, and generates a dict that zips column names to relevant data
+            # this is as efficient as I can develop, so will need to look for something better in future
             self.cursor.execute(data_query)
-            data = self.cursor.fetchall()
+            columns = [desc[0] for desc in self.cursor.description]
+            data = [dict(zip(columns, row)) for row in self.cursor.fetchall()]
+
+            # create data frame to easily gather values using pandas
             data_frame = pd.DataFrame(data, columns=table_columns)
 
             # updates catalogue
@@ -106,7 +114,7 @@ class ReplicationMethodsPostgreSQL:
             # use write to s3 method to send data frame directly to s3
             self.s3_service.write_to_s3(data=data, table=table)
 
-        except (Exception, psycopg2.Error) as error:
+        except Exception as error:
             logging.info('[postgresql.db] error while loading table from PostgreSQL: {}'.format(error))
 
         finally:
@@ -136,7 +144,12 @@ class ReplicationMethodsPostgreSQL:
                 # if method will pass the data if there is no updates needed
                 self.cursor.execute(data_query)
 
-                data = self.cursor.fetchall()
+                # substitute for real dictionary cursor to preserve the column names of the table
+                # querying from the database and simply parsing to json loses vital data, so the
+                # steps below gather the data, and generates a dict that zips column names to relevant data
+                # this is as efficient as I can develop, so will need to look for something better in future
+                columns = [desc[0] for desc in self.cursor.description]
+                data = [dict(zip(columns, row)) for row in self.cursor.fetchall()]
 
                 catalogue.CatalogueMethods().update_catalogue(column_name=column,
                                                               column_time=
@@ -147,7 +160,7 @@ class ReplicationMethodsPostgreSQL:
 
                 self.s3_service.write_to_s3(data=data, table=table)
 
-        except (Exception, psycopg2.Error) as error:
+        except Exception as error:
             logging.info('[postgresql.db] error while loading table from PostgreSQL: {}'.format(error))
 
         finally:
@@ -168,7 +181,7 @@ class ReplicationMethodsPostgreSQL:
             self.cursor.execute(data_query)
             return self.cursor.fetchall()[0][0]
 
-        except (Exception, psycopg2.Error) as error:
+        except Exception as error:
             logging.info('[postgresql.db] error while loading table from PostgreSQL: {}'.format(error))
 
         finally:

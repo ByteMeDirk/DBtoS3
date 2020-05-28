@@ -28,7 +28,7 @@ website_db = dbtos3.ReplicationMethodsPostgreSQL(
 def website_db_full_load_methods(args):
     for a in args:
         print('--   new process {}  ----------------------------'.format(a))
-        website_db.day_level_full_load(days=10, table=a, column='updated_at')
+        website_db.day_level_full_load(days=50, table=a, column='updated_at')
 
 
 def website_db_replicate_methods(args):
@@ -97,15 +97,15 @@ def sentry_replicate_methods(args):
 
 if __name__ == '__main__':
     website_db_tables = ['users']
-    website_db_full_load_methods(website_db_tables)
-    # website_db_replicate_methods(website_db_tables)
+    # website_db_full_load_methods(website_db_tables)
+    website_db_replicate_methods(website_db_tables)
     website_db.close_connection()
 
     mysql_tables = ['tasks']
-    mysql_db_full_load_methods(mysql_tables)
-    # mysql_db_replicate_methods(mysql_tables)
+    # mysql_db_full_load_methods(mysql_tables)
+    mysql_db_replicate_methods(mysql_tables)
     mysql_db.close_connection()
 
-    sentry_projects = ['website-frontend']
-    sentry_full_load_methods(sentry_projects)
-    # sentry_replicate_methods(sentry_projects)
+    # sentry_projects = ['website-frontend']
+    # sentry_full_load_methods(sentry_projects)
+    # # sentry_replicate_methods(sentry_projects)

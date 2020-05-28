@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 from datetime import datetime
@@ -69,7 +68,7 @@ class ReplicationMethodsMySQL:
             port=self.port
         )
 
-        self.cursor = self.connection.cursor(dictionary=True)
+        self.cursor = self.connection.cursor()
 
         # ensures the catalogue exists
         catalogue.CatalogueMethods().set_up_catalogue()
@@ -90,14 +89,21 @@ class ReplicationMethodsMySQL:
             column_query = "SHOW COLUMNS FROM {}".format(table)
 
             # execute queries and allocate them to objects
-            self.cursor.execute(column_query)
-            column_data = self.cursor.fetchall()
 
-            for c in column_data:
+            # gather all column names for data frame
+            self.cursor.execute(column_query)
+            for c in self.cursor.fetchall():
                 table_columns.append(c[0])
 
+            # substitute for real dictionary cursor to preserve the column names of the table
+            # querying from the database and simply parsing to json loses vital data, so the
+            # steps below gather the data, and generates a dict that zips column names to relevant data
+            # this is as efficient as I can develop, so will need to look for something better in future
             self.cursor.execute(data_query)
-            data = self.cursor.fetchall()
+            columns = [desc[0] for desc in self.cursor.description]
+            data = [dict(zip(columns, row)) for row in self.cursor.fetchall()]
+
+            # create data frame to easily gather values using pandas
             data_frame = pd.DataFrame(data, columns=table_columns)
 
             # updates catalogue
@@ -111,7 +117,8 @@ class ReplicationMethodsMySQL:
             logging.info('[mysql.db] error while loading table from MySQL: {}'.format(error))
 
         finally:
-            logging.info('[mysql.db] loading data from {} at {} days based on column {} done!'.format(table, days, column))
+            logging.info(
+                '[mysql.db] loading data from {} at {} days based on column {} done!'.format(table, days, column))
 
     def replicate_table(self, table, column):
         """
@@ -134,7 +141,13 @@ class ReplicationMethodsMySQL:
 
                 # if method will pass the data if there is no updates needed
                 self.cursor.execute(data_query)
-                data = self.cursor.fetchall()
+
+                # substitute for real dictionary cursor to preserve the column names of the table
+                # querying from the database and simply parsing to json loses vital data, so the
+                # steps below gather the data, and generates a dict that zips column names to relevant data
+                # this is as efficient as I can develop, so will need to look for something better in future
+                columns = [desc[0] for desc in self.cursor.description]
+                data = [dict(zip(columns, row)) for row in self.cursor.fetchall()]
 
                 catalogue.CatalogueMethods().update_catalogue(column_name=column,
                                                               column_time=self.get_max_time_from_db(table=table,
