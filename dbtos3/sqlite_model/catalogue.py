@@ -26,7 +26,7 @@ class CatalogueMethods:
         """
         if self.conn is not None:
             try:
-                logging.info('setting up data catalogue')
+                logging.info('[sqlite.catalogue] setting up data catalogue')
                 catalogue_query = """
                     CREATE TABLE IF NOT EXISTS catalogue (
                         id integer PRIMARY KEY AUTOINCREMENT,
@@ -38,13 +38,13 @@ class CatalogueMethods:
                     )"""
 
                 self.cursor.execute(catalogue_query)
-                logging.info('catalogue created successfully')
+                logging.info('[sqlite.catalogue] catalogue created successfully')
 
             except (Exception, sqlite3.Error) as error:
-                logging.info('Error while creating catalogue: {}'.format(error))
+                logging.info('[sqlite.catalogue] error while creating catalogue: {}'.format(error))
 
         else:
-            logging.info('cannot connect to catalogue')
+            logging.info('[sqlite.catalogue] cannot connect to catalogue')
 
     def update_catalogue(self, column_name, column_time, table_name, app_run_time, data_source):
         """
@@ -64,13 +64,13 @@ class CatalogueMethods:
 
                 self.cursor.execute(catalogue_query)
                 self.conn.commit()
-                logging.info('catalogue updated successfully')
+                logging.info('[sqlite.catalogue] catalogue updated successfully')
 
             except (Exception, sqlite3.Error) as error:
-                logging.info('Error while creating catalogue: {}'.format(error))
+                logging.info('[sqlite.catalogue] error while creating catalogue: {}'.format(error))
 
         else:
-            logging.info('cannot connect to catalogue')
+            logging.info('[sqlite.catalogue] cannot connect to catalogue')
 
     def get_max_time_from_catalogue(self, table, data_source):
         """
@@ -81,18 +81,18 @@ class CatalogueMethods:
         """
         if self.conn is not None:
             try:
-                catalogue_query = "SELECT max(column_time) FROM catalogue WHERE table_name = '{}' and database = '{}'".format(
-                    table, data_source)
+                catalogue_query = "SELECT max(column_time) FROM catalogue WHERE table_name = '{}' and data_source = '{}'"\
+                    .format(table, data_source)
 
                 self.cursor.execute(catalogue_query)
-                logging.info('max gathered from catalogue successfully')
+                logging.info('[sqlite.catalogue] max gathered from catalogue successfully')
                 return self.cursor.fetchall()[0][0]
 
             except (Exception, sqlite3.Error) as error:
-                logging.info('Error while gathering max from catalogue: {}'.format(error))
+                logging.info('[sqlite.catalogue] error while gathering max from catalogue: {}'.format(error))
 
         else:
-            logging.info('cannot connect to catalogue')
+            logging.info('[sqlite.catalogue] cannot connect to catalogue')
 
     def close_connection(self):
         """

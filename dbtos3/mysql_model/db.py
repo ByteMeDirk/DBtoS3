@@ -69,7 +69,7 @@ class ReplicationMethodsMySQL:
             port=self.port
         )
 
-        self.cursor = self.connection.cursor()
+        self.cursor = self.connection.cursor(dictionary=True)
 
         # ensures the catalogue exists
         catalogue.CatalogueMethods().set_up_catalogue()
@@ -82,7 +82,7 @@ class ReplicationMethodsMySQL:
 
     def day_level_full_load(self, days, table, column):
         try:
-            logging.info('loading data from {} at {} days based on column {}'.format(table, days, column))
+            logging.info('[mysql.db] loading data from {} at {} days based on column {}'.format(table, days, column))
 
             table_columns = []
             # construct query to get nth days of data from table & all column names of that table
@@ -108,10 +108,10 @@ class ReplicationMethodsMySQL:
             self.s3_service.write_to_s3(data=data, table=table)
 
         except Exception as error:
-            logging.info('Error while loading table from MySQL: {}'.format(error))
+            logging.info('[mysql.db] error while loading table from MySQL: {}'.format(error))
 
         finally:
-            logging.info('loading data from {} at {} days based on column {} done!'.format(table, days, column))
+            logging.info('[mysql.db] loading data from {} at {} days based on column {} done!'.format(table, days, column))
 
     def replicate_table(self, table, column):
         """
@@ -121,14 +121,14 @@ class ReplicationMethodsMySQL:
         :return: writes directly to s3
         """
         try:
-            logging.info('replicating table {} based on timestamp {}'.format(table, column))
+            logging.info('[mysql.db] replicating table {} based on timestamp {}'.format(table, column))
 
             # get max update time first from catalogue
             max_update_time = catalogue.CatalogueMethods().get_max_time_from_catalogue(table=table, data_source='mysql')
 
             # construct query to get nth days of data from table & all column names of that table
             if max_update_time is None:
-                logging.info('no need to update {}!'.format(table))
+                logging.info('[mysql.db] no need to update {}!'.format(table))
             else:
                 data_query = "select * from {} where {} > '{}'".format(table, column, max_update_time)
 
@@ -146,30 +146,30 @@ class ReplicationMethodsMySQL:
                 self.s3_service.write_to_s3(data=data, table=table)
 
         except Exception as error:
-            logging.info('Error while loading table from MySQL: {}'.format(error))
+            logging.info('[mysql.db] error while loading table from MySQL: {}'.format(error))
 
         finally:
-            logging.info('loading data from {} based on column {} done!'.format(table, column))
+            logging.info('[mysql.db] loading data from {} based on column {} done!'.format(table, column))
 
     def get_max_time_from_db(self, table, column):
         try:
-            logging.info('getting max time from {} to update catalogue based on {}'.format(table, column))
+            logging.info('[mysql.db] getting max time from {} to update catalogue based on {}'.format(table, column))
 
             data_query = "select max({}) from {}".format(column, table)
             self.cursor.execute(data_query)
             return self.cursor.fetchall()[0][0]
 
         except Exception as error:
-            logging.info('Error while loading table from MySQL: {}'.format(error))
+            logging.info('[mysql.db] error while loading table from MySQL: {}'.format(error))
 
         finally:
-            logging.info('getting max time from {} complete! '.format(table))
+            logging.info('[mysql.db] getting max time from {} complete! '.format(table))
 
     def close_connection(self):
         """
         closes connection to database
         :return: none
         """
-        logging.info('Closing all connections')
+        logging.info('[mysql.db] closing all connections')
         self.connection.close()
         catalogue.CatalogueMethods().close_connection()

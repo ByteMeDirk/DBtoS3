@@ -48,9 +48,9 @@ class S3ServiceMethod:
         :return: writes object directly to s3
         """
         try:
-            logging.info('writing dataframe of table {} to s3'.format(table))
+            logging.info('[s3.service] writing dataframe of table {} to s3'.format(table))
             if len(data) < 1:
-                logging.info('no data in {} needs to be sent to s3'.format(table))
+                logging.info('[s3.service] no data in {} needs to be sent to s3'.format(table))
             else:
                 def json_serial(obj):
                     """JSON serializer for objects not serializable by default json code"""
@@ -60,10 +60,11 @@ class S3ServiceMethod:
 
                 s3_object = self.s3resource.Object(self.s3bucket, '{1}/{0}/{0}-{2}.json'
                                                    .format(table, self.s3main_key, calendar.timegm(time.gmtime())))
-                s3_object.put(Body=(bytes(json.dumps(data, default=json_serial).encode('UTF-8'))))
+                s3_object.put(Body=(bytes(json.dumps(data, default=json_serial, allow_nan=True)
+                                          .encode('UTF-8'))))
 
         except Exception as error:
-            logging.info('Error while trying to send {} data to s3: {}'.format(table, error))
+            logging.info('[s3.service] error while trying to send {} data to s3: {}'.format(table, error))
 
         finally:
-            logging.info('loading data from {} to s3 done!'.format(table))
+            logging.info('[s3.service] loading data from {} to s3 done!'.format(table))
