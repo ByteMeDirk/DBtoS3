@@ -15,8 +15,8 @@ except FileExistsError:
 for handler in logging.root.handlers[:]:
     logging.root.removeHandler(handler)
 
-logging.basicConfig(filename='Logs/logs.log', filemode='w', datefmt='%d-%b-%y %H:%M:%S',
-                    level=logging.INFO)
+logging.basicConfig(filename='Logs/logs-{}.log'.format(datetime.now().strftime('%d%m%y%H%M')),
+                    filemode='w', datefmt='%d-%b-%y %H:%M:%S', level=logging.INFO)
 
 
 class S3ServiceMethod:
