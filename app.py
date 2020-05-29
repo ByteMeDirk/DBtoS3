@@ -28,7 +28,7 @@ website_db = dbtos3.ReplicationMethodsPostgreSQL(
 def website_db_full_load_methods(args):
     for a in args:
         print('--   new process {}  ----------------------------'.format(a))
-        website_db.day_level_full_load(days=50, table=a, column='updated_at')
+        website_db.day_level_full_load(days=10, table=a, column='updated_at')
 
 
 def website_db_replicate_methods(args):
@@ -84,15 +84,13 @@ sentry = dbtos3.SentryReplicationMethod(
 def sentry_full_load_methods(args):
     for a in args:
         print('--   new process {}  ----------------------------'.format(a))
-        sentry.full_load_all_events(project=a)
-        sentry.full_load_all_project_issues(project=a)
+        sentry.full_load(project=a)
 
 
 def sentry_replicate_methods(args):
     for a in args:
         print('--   new process {}  ----------------------------'.format(a))
-        sentry.replicate_all_events(project=a)
-        sentry.replicate_all_project_issues(project=a)
+        sentry.replicate(project=a)
 
 
 if __name__ == '__main__':
@@ -106,6 +104,6 @@ if __name__ == '__main__':
     mysql_db_replicate_methods(mysql_tables)
     mysql_db.close_connection()
 
-    # sentry_projects = ['website-frontend']
+    sentry_projects = ['website-frontend']
     # sentry_full_load_methods(sentry_projects)
-    # # sentry_replicate_methods(sentry_projects)
+    sentry_replicate_methods(sentry_projects)
