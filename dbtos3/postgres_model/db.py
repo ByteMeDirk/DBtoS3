@@ -62,10 +62,10 @@ class ReplicationMethodsPostgreSQL:
         catalogue.CatalogueMethods().set_up_catalogue()
 
     @staticmethod
-    def update_catalogue(column_name, column_time, table_name, app_run_time, database):
+    def update_catalogue(column_name, column_time, table_name, app_run_time, data_source):
         update_catalogue = catalogue.CatalogueMethods()
         update_catalogue.update_catalogue(column_name=column_name, column_time=column_time, table_name=table_name,
-                                          app_run_time=app_run_time, data_source=database)
+                                          app_run_time=app_run_time, data_source=data_source)
 
     def day_level_full_load(self, days, table, column):
 
@@ -110,7 +110,8 @@ class ReplicationMethodsPostgreSQL:
 
             # updates catalogue
             self.update_catalogue(column_name=column, column_time=data_frame[column].max(),
-                                  table_name=table, app_run_time=datetime.now(), database='postgres')
+                                  table_name=table, app_run_time=datetime.now(),
+                                  data_source='postgres-{}'.format(table))
 
             # use write to s3 method to send data frame directly to s3
             self.s3_service.write_to_s3(data=data, local=table)
@@ -138,7 +139,8 @@ class ReplicationMethodsPostgreSQL:
 
             # get max update time first from catalogue
             max_update_time = catalogue.CatalogueMethods().get_max_time_from_catalogue(table=table,
-                                                                                       data_source='postgres')
+                                                                                       data_source='postgres-{}'.format(
+                                                                                           table))
 
             # construct query to get nth days of data from table & all column names of that table
             if max_update_time is None:
@@ -161,7 +163,7 @@ class ReplicationMethodsPostgreSQL:
                                                               self.get_max_time_from_db(table=table, column=column),
                                                               table_name=table,
                                                               app_run_time=datetime.now(),
-                                                              data_source='postgres')
+                                                              data_source='postgres-{}'.format(table))
 
                 self.s3_service.write_to_s3(data=data, local=table)
 
