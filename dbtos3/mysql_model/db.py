@@ -81,12 +81,14 @@ class ReplicationMethodsMySQL:
 
     def day_level_full_load(self, days, table, column):
         try:
-            logging.info('[mysql.db] loading data from {} at {} days based on column {}'.format(table, days, column))
+            logging.info(
+                '[mysql.db] loading data from {} at {} days based on column {} [{}]'.format(table, days, column,
+                                                                                            datetime.now()))
 
             table_columns = []
             # construct query to get nth days of data from table & all column names of that table
             data_query = "select * from {} where {} > now() - interval {} day".format(table, column, days)
-            column_query = "SHOW COLUMNS FROM {}".format(table)
+            column_query = "show columns from {}".format(table)
 
             # execute queries and allocate them to objects
 
@@ -111,14 +113,15 @@ class ReplicationMethodsMySQL:
                                   table_name=table, app_run_time=datetime.now(), database='mysql')
 
             # use write to s3 method to send data frame directly to s3
-            self.s3_service.write_to_s3(data=data, table=table)
+            self.s3_service.write_to_s3(data=data, local=table)
 
         except Exception as error:
-            logging.info('[mysql.db] error while loading table from MySQL: {}'.format(error))
+            logging.info('[mysql.db] error while loading table from MySQL: {} [{}]'.format(error, datetime.now()))
 
         finally:
             logging.info(
-                '[mysql.db] loading data from {} at {} days based on column {} done!'.format(table, days, column))
+                '[mysql.db] loading data from {} at {} days based on column {} done! [{}]'.format(table, days, column,
+                                                                                                  datetime.now()))
 
     def replicate_table(self, table, column):
         """
@@ -128,14 +131,15 @@ class ReplicationMethodsMySQL:
         :return: writes directly to s3
         """
         try:
-            logging.info('[mysql.db] replicating table {} based on timestamp {}'.format(table, column))
+            logging.info(
+                '[mysql.db] replicating table {} based on timestamp {} [{}]'.format(table, column, datetime.now()))
 
             # get max update time first from catalogue
             max_update_time = catalogue.CatalogueMethods().get_max_time_from_catalogue(table=table, data_source='mysql')
 
             # construct query to get nth days of data from table & all column names of that table
             if max_update_time is None:
-                logging.info('[mysql.db] no need to update {}!'.format(table))
+                logging.info('[mysql.db] no need to update {}! [{}]'.format(table, datetime.now()))
             else:
                 data_query = "select * from {} where {} > '{}'".format(table, column, max_update_time)
 
@@ -156,33 +160,36 @@ class ReplicationMethodsMySQL:
                                                               app_run_time=datetime.now(),
                                                               data_source='mysql')
 
-                self.s3_service.write_to_s3(data=data, table=table)
+                self.s3_service.write_to_s3(data=data, local=table)
 
         except Exception as error:
-            logging.info('[mysql.db] error while loading table from MySQL: {}'.format(error))
+            logging.info('[mysql.db] error while loading table from MySQL: {} [{}]'.format(error, datetime.now()))
 
         finally:
-            logging.info('[mysql.db] loading data from {} based on column {} done!'.format(table, column))
+            logging.info(
+                '[mysql.db] loading data from {} based on column {} done! [{}]'.format(table, column, datetime.now()))
 
     def get_max_time_from_db(self, table, column):
         try:
-            logging.info('[mysql.db] getting max time from {} to update catalogue based on {}'.format(table, column))
+            logging.info(
+                '[mysql.db] getting max time from {} to update catalogue based on {} [{}]'.format(table, column,
+                                                                                                  datetime.now()))
 
             data_query = "select max({}) from {}".format(column, table)
             self.cursor.execute(data_query)
             return self.cursor.fetchall()[0][0]
 
         except Exception as error:
-            logging.info('[mysql.db] error while loading table from MySQL: {}'.format(error))
+            logging.info('[mysql.db] error while loading table from MySQL: {} [{}]'.format(error, datetime.now()))
 
         finally:
-            logging.info('[mysql.db] getting max time from {} complete! '.format(table))
+            logging.info('[mysql.db] getting max time from {} complete! [{}]'.format(table, datetime.now()))
 
     def close_connection(self):
         """
         closes connection to database
         :return: none
         """
-        logging.info('[mysql.db] closing all connections')
+        logging.info('[mysql.db] closing all connections [{}]'.format(datetime.now()))
         self.connection.close()
         catalogue.CatalogueMethods().close_connection()

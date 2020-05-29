@@ -82,7 +82,8 @@ class ReplicationMethodsPostgreSQL:
         """
         try:
             logging.info(
-                '[postgresql.db] loading data from {} at {} days based on column {}'.format(table, days, column))
+                '[postgresql.db] loading data from {} at {} days based on column {} [{}]'.format(table, days, column,
+                                                                                                 datetime.now()))
 
             table_columns = []
             # construct query to get nth days of data from table & all column names of that table
@@ -112,14 +113,17 @@ class ReplicationMethodsPostgreSQL:
                                   table_name=table, app_run_time=datetime.now(), database='postgres')
 
             # use write to s3 method to send data frame directly to s3
-            self.s3_service.write_to_s3(data=data, table=table)
+            self.s3_service.write_to_s3(data=data, local=table)
 
         except Exception as error:
-            logging.info('[postgresql.db] error while loading table from PostgreSQL: {}'.format(error))
+            logging.info(
+                '[postgresql.db] error while loading table from PostgreSQL: {} [{}]'.format(error, datetime.now()))
 
         finally:
             logging.info(
-                '[postgresql.db] loading data from {} at {} days based on column {} done!'.format(table, days, column))
+                '[postgresql.db] loading data from {} at {} days based on column {} done! [{}]'.format(table, days,
+                                                                                                       column,
+                                                                                                       datetime.now()))
 
     def replicate_table(self, table, column):
         """
@@ -129,7 +133,8 @@ class ReplicationMethodsPostgreSQL:
         :return: writes directly to s3
         """
         try:
-            logging.info('[postgresql.db] replicating table {} based on timestamp {}'.format(table, column))
+            logging.info(
+                '[postgresql.db] replicating table {} based on timestamp {} [{}]'.format(table, column, datetime.now()))
 
             # get max update time first from catalogue
             max_update_time = catalogue.CatalogueMethods().get_max_time_from_catalogue(table=table,
@@ -137,7 +142,7 @@ class ReplicationMethodsPostgreSQL:
 
             # construct query to get nth days of data from table & all column names of that table
             if max_update_time is None:
-                logging.info('[postgresql.db] no need to update {}!'.format(table))
+                logging.info('[postgresql.db] no need to update {}! [{}]'.format(table, datetime.now()))
             else:
                 data_query = "select * from {} where {} > '{}'".format(table, column, max_update_time)
 
@@ -158,13 +163,15 @@ class ReplicationMethodsPostgreSQL:
                                                               app_run_time=datetime.now(),
                                                               data_source='postgres')
 
-                self.s3_service.write_to_s3(data=data, table=table)
+                self.s3_service.write_to_s3(data=data, local=table)
 
         except Exception as error:
-            logging.info('[postgresql.db] error while loading table from PostgreSQL: {}'.format(error))
+            logging.info(
+                '[postgresql.db] error while loading table from PostgreSQL: {} [{}]'.format(error, datetime.now()))
 
         finally:
-            logging.info('[postgresql.db] loading data from {} based on column {} done!'.format(table, column))
+            logging.info('[postgresql.db] loading data from {} based on column {} done! [{}]'.format(table, column,
+                                                                                                     datetime.now()))
 
     def get_max_time_from_db(self, table, column):
         """
@@ -175,23 +182,25 @@ class ReplicationMethodsPostgreSQL:
         """
         try:
             logging.info(
-                '[postgresql.db] getting max time from {} to update catalogue based on {}'.format(table, column))
+                '[postgresql.db] getting max time from {} to update catalogue based on {} [{}]'.format(table, column,
+                                                                                                       datetime.now()))
 
             data_query = "select max({}) from {}".format(column, table)
             self.cursor.execute(data_query)
             return self.cursor.fetchall()[0][0]
 
         except Exception as error:
-            logging.info('[postgresql.db] error while loading table from PostgreSQL: {}'.format(error))
+            logging.info(
+                '[postgresql.db] error while loading table from PostgreSQL: {} [{}]'.format(error, datetime.now()))
 
         finally:
-            logging.info('[postgresql.db] getting max time from {} complete! '.format(table))
+            logging.info('[postgresql.db] getting max time from {} complete! [{}]'.format(table, datetime.now()))
 
     def close_connection(self):
         """
         closes connection to database
         :return: none
         """
-        logging.info('[postgresql.db] closing all connections')
+        logging.info('[postgresql.db] closing all connections [{}]'.format(datetime.now()))
         self.connection.close()
         catalogue.CatalogueMethods().close_connection()

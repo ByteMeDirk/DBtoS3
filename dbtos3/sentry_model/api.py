@@ -72,7 +72,7 @@ class GetSentryEventsData:
         url = 'https://sentry.io/api/0/projects/{0}/{1}/issues/?statsPeriod={2}'.format(
             organization, project, '14d' if period is 1 else '24h'
         )
-        logging.info('[sentry.api] called : {}'.format(url))
+        logging.info('[sentry.api] called : {} [{}]'.format(url, datetime.now()))
         return requests.get(url, headers=self.header).json()
 
     def list_a_projects_events(self, organization, project, period):
@@ -86,7 +86,7 @@ class GetSentryEventsData:
         url = 'https://sentry.io/api/0/projects/{0}/{1}/events/?statsPeriod={2}'.format(
             organization, project, '14d' if period is 1 else '24h'
         )
-        logging.info('[sentry.api] called : {}'.format(url))
+        logging.info('[sentry.api] called : {} [{}]'.format(url, datetime.now()))
         return requests.get(url, headers=self.header).json()
 
     def list_an_issues_events(self, issue_id):
@@ -98,7 +98,7 @@ class GetSentryEventsData:
         url = 'https://sentry.io/api/0/issues/{}/events/'.format(
             issue_id
         )
-        logging.info('[sentry.api] called : {}'.format(url))
+        logging.info('[sentry.api] called : {} [{}]'.format(url, datetime.now()))
         return requests.get(url, headers=self.header).json()
 
 
@@ -135,7 +135,7 @@ class SentryReplicationMethod:
         :return: json
         """
         try:
-            logging.info('[sentry.api] attempting full load of sentry project: {}'.format(project))
+            logging.info('[sentry.api] attempting full load of sentry project: {} [{}]'.format(project, datetime.now()))
 
             ###
             # ISSUES DATA
@@ -156,7 +156,7 @@ class SentryReplicationMethod:
                                   .format(project))
 
             # write data to s3
-            self.s3_service.write_to_s3(data=events_data, table=project + '-events')
+            self.s3_service.write_to_s3(data=events_data, local=project + '-events')
 
             ###
             # EVENTS ISSUES DATA
@@ -171,14 +171,19 @@ class SentryReplicationMethod:
                 # write to catalog with max timestamp
                 self.update_catalogue(column_name='dateCreated', column_time=events_issue_data_df['dateCreated'].max(),
                                       table_name=project, app_run_time=datetime.now(),
-                                      database='sentry-issue-{}'.format(i))
+                                      database='{}-sentry-issue-{}'.format(project, i))
 
                 # write data to s3
-                self.s3_service.write_to_s3(data=events_data, table='{}-issue-{}'.format(project, i))
+                # (this requires a special write method to ensure all issues are in one folder per project)
+                self.s3_service.specific_write_to_s3(
+                    data=events_data,
+                    folder='{}-issue'.format(project),
+                    file=i)
 
         except Exception as error:
             logging.info(
-                '[sentry.api] error while doing a sentry full load: {} \n for project {}'.format(error, project))
+                '[sentry.api] error while doing a sentry full load: {} \n for project {} [{}]'
+                    .format(error, project, datetime.now()))
 
     def replicate(self, project):
         """
@@ -187,7 +192,7 @@ class SentryReplicationMethod:
         :return:
         """
         try:
-            logging.info('[sentry.api] attempting replicate sentry project: {}'.format(project))
+            logging.info('[sentry.api] attempting replicate sentry project: {} [{}]'.format(project, datetime.now()))
 
             ###
             # ISSUES DATA
@@ -208,7 +213,7 @@ class SentryReplicationMethod:
                                   .format(project))
 
             # write data to s3
-            self.s3_service.write_to_s3(data=events_data, table=project + '-events')
+            self.s3_service.write_to_s3(data=events_data, local=project + '-events')
 
             ###
             # EVENTS ISSUES DATA
@@ -223,11 +228,16 @@ class SentryReplicationMethod:
                 # write to catalog with max timestamp
                 self.update_catalogue(column_name='dateCreated', column_time=events_issue_data_df['dateCreated'].max(),
                                       table_name=project, app_run_time=datetime.now(),
-                                      database='sentry-issue-{}'.format(i))
+                                      database='{}-sentry-issue-{}'.format(project, i))
 
                 # write data to s3
-                self.s3_service.write_to_s3(data=events_data, table='{}-issue-{}'.format(project, i))
+                # (this requires a special write method to ensure all issues are in one folder per project)
+                self.s3_service.specific_write_to_s3(
+                    data=events_data,
+                    folder='{}-issue'.format(project),
+                    file=i)
 
         except Exception as error:
             logging.info(
-                '[sentry.api] error while doing a sentry full load: {} \n for project {}'.format(error, project))
+                '[sentry.api] error while doing a sentry full load: {} \n for project {} [{}]'
+                    .format(error, project, datetime.now()))
