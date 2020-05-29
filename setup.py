@@ -8,7 +8,8 @@ requires = [
     'numpy',
     'psycopg2',
     'pandas',
-    'mysql-connector-python'
+    'mysql-connector-python',
+    'flask'
 ]
 
 setuptools.setup(
