@@ -25,5 +25,10 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=requires,
     python_requires='>=3',
-    keywords=['postgresql', 's3', 'aws', 'mysql', 'sentry', 'replication', 'sql']
+    keywords=['postgresql', 's3', 'aws', 'mysql', 'sentry', 'replication', 'sql'],
+    project_urls={
+        'Documentation': 'https://github.com/DirksCGM/DBtoS3/wiki',
+        'Foundation': 'https://perceptechdata.com/perceptech-data-software-foundation/',
+        'Source': 'https://github.com/DirksCGM/DBtoS3',
+    },
 )
