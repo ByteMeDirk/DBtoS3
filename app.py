@@ -26,15 +26,15 @@ website_db = dbtos3.ReplicationMethodsPostgreSQL(
 
 
 def website_db_full_load_methods(args):
-    for a in args:
-        print('--   new process {}  ----------------------------'.format(a))
-        website_db.day_level_full_load(days=10, table=a, column='updated_at')
+    for k, v in args.items():
+        print('--   new process {}  ----------------------------'.format(k))
+        website_db.day_level_full_load(days=10, table=k, column=v)
 
 
 def website_db_replicate_methods(args):
-    for a in args:
-        print('--   new process {}  ----------------------------'.format(a))
-        website_db.replicate_table(table=a, column='updated_at')
+    for k, v in args.items():
+        print('--   new process {}  ----------------------------'.format(k))
+        website_db.replicate_table(table=k, column=v)
 
 
 ###
@@ -56,15 +56,15 @@ mysql_db = dbtos3.ReplicationMethodsMySQL(
 
 
 def mysql_db_full_load_methods(args):
-    for a in args:
-        print('--   new process {}  ----------------------------'.format(a))
-        mysql_db.day_level_full_load(days=10, table=a, column='updated_at')
+    for k, v in args.items():
+        print('--   new process {}  ----------------------------'.format(k))
+        mysql_db.day_level_full_load(days=10, table=k, column=v)
 
 
 def mysql_db_replicate_methods(args):
-    for a in args:
-        print('--   new process {}  ----------------------------'.format(a))
-        mysql_db.replicate_table(table=a, column='updated_at')
+    for k, v in args.items():
+        print('--   new process {}  ----------------------------'.format(k))
+        mysql_db.replicate_table(table=k, column=v)
 
 
 ###
@@ -93,17 +93,43 @@ def sentry_replicate_methods(args):
         sentry.replicate(project=a)
 
 
+###
+# Setting up Exchange Rates Replication and full-load
+###
+
+exchange_rates = dbtos3.ExchangesRatesReplicationMethod(
+    region_name=os.getenv('AWS_REGION'),
+    aws_access_key_id=os.getenv('AWS_SECRET_KEY_ID'),
+    aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
+    s3bucket=os.getenv('S3_BUCKET'),
+    main_key=os.getenv('EXCHANGE_S3_MAIN_KEY')
+)
+
+
+def exchange_rates_full_load_methods():
+    print('--   new process {}  ----------------------------'.format('exchange rate'))
+    exchange_rates.full_load(start_at='2018-01-01')
+
+
+def exchange_rates_replication_methods():
+    print('--   new process {}  ----------------------------'.format('exchange rate'))
+    exchange_rates.replicate()
+
+
 if __name__ == '__main__':
-    website_db_tables = ['users']
-    # website_db_full_load_methods(website_db_tables)
-    website_db_replicate_methods(website_db_tables)
+    website_db_tables = {'users': 'updated_at'}
+    website_db_full_load_methods(website_db_tables)
+    # website_db_replicate_methods(website_db_tables)
     website_db.close_connection()
 
-    mysql_tables = ['tasks']
-    # mysql_db_full_load_methods(mysql_tables)
-    mysql_db_replicate_methods(mysql_tables)
+    mysql_tables = {'tasks': 'updated_at'}
+    # mysql_db_full_load_methods(mysql_tables)/
+    # mysql_db_replicate_methods(mysql_tables)
     mysql_db.close_connection()
 
     sentry_projects = ['website-frontend']
-    # sentry_full_load_methods(sentry_projects)
-    sentry_replicate_methods(sentry_projects)
+    sentry_full_load_methods(sentry_projects)
+    # sentry_replicate_methods(sentry_projects)
+
+    exchange_rates_full_load_methods()
+    # exchange_rates_replication_methods()

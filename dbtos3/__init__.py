@@ -20,3 +20,4 @@ from dbtos3.postgres_model.db import ReplicationMethodsPostgreSQL
 from dbtos3.sqlite_model.catalogue import CatalogueMethods
 from dbtos3.s3_model.service import S3ServiceMethod
 from dbtos3.sentry_model.api import SentryReplicationMethod, GetSentryEventsData
+from dbtos3.exchangeratesapi_model.api import ExchangesRatesReplicationMethod
