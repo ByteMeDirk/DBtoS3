@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from datetime import datetime
@@ -51,6 +52,7 @@ class ExchangesRatesReplicationMethod:
     no token needed
     organisation=your company or organisation
     """
+
     def __init__(self, **kwargs):
         self.s3_service = service.S3ServiceMethod(
             region_name=kwargs['region_name'],
@@ -91,7 +93,7 @@ class ExchangesRatesReplicationMethod:
 
             # write data to s3
             self.s3_service.write_to_s3(
-                data=df.to_dict(),
+                data=df.to_dict(orient='records'),
                 local='exchangeratesapi'
             )
 
@@ -129,12 +131,11 @@ class ExchangesRatesReplicationMethod:
 
                 # write data to s3
                 self.s3_service.write_to_s3(
-                    data=df.to_dict(),
+                    data=df.to_dict(orient='records'),
                     local='exchangeratesapi'
                 )
             else:
                 logging.info('[exchangerates.api] no need to exchange rates! [{}]'.format(datetime.now()))
-
 
         except Exception as error:
             logging.info(

@@ -24,6 +24,11 @@ Please make use of the [Wiki](https://github.com/DirksCGM/DBtoS3/wiki) which wil
     * organization projects
     * organisation project events
     
+* [Exchange Rates API to S3 - full load and replication](https://github.com/DirksCGM/DBtoS3/wiki/ExchangeRatesAPI)
+    * Historical Exchange Rates
+    * Daily Exchange Rates
+    * Courtesy of [exchangeratesapi.io](https://exchangeratesapi.io/)
+    
 *More will be added over time*
 
 ## Development
