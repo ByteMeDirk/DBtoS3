@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pandas as pd
 import requests
@@ -26,7 +26,8 @@ def get_current_rates():
     gets today's exchange rates at the time of the request
     :return: json
     """
-    url = 'https://api.exchangeratesapi.io/{}/'.format(
+    url = 'https://api.exchangeratesapi.io/history?start_at={}&end_at={}'.format(
+        (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d'),
         datetime.now().strftime('%Y-%m-%d')
     )
     logging.info('[exchangeratesapi.api] called : {} [{}]'.format(url, datetime.now()))
@@ -76,18 +77,10 @@ class ExchangesRatesReplicationMethod:
         """
         try:
             logging.info('[exchangerates.api] attempting full load of exchangeratesapi.io [{}]'.format(datetime.now()))
-            data = get_ranged_rates(start_at=start_at)
-            # at the moment this is the most elegant way I can think of to turn this data into a
-            # useful table format
-            rates = [v for k, v in data['rates'].items()][0]
-            date = [k for k, v in data['rates'].items()]
-            currency = [k for k, v in rates.items()]
-            rate = [v for k, v in rates.items()]
-
-            df = pd.DataFrame(list(zip(date, currency, rate)), columns=['date', 'currency', 'rate'])
+            df = pd.DataFrame(json.loads(json.dumps(get_ranged_rates(start_at=start_at))))
 
             # write to catalog with max timestamp
-            self.update_catalogue(column_name='date', column_time=df['date'].max(),
+            self.update_catalogue(column_name='end_at', column_time=df['end_at'].max(),
                                   table_name='exchangeratesmodel', app_run_time=datetime.now(),
                                   database='exchangeratesmodel.io')
 
@@ -110,22 +103,17 @@ class ExchangesRatesReplicationMethod:
         try:
             logging.info('[exchangerates.api] attempting replication of exchangeratesapi.io [{}]'.format(
                 datetime.now()))
-            data, df = get_current_rates(), pd.DataFrame(columns=['date', 'currency', 'rate'])
 
-            for k, v in data['rates'].items():
-                tmp = {
-                    'date': data['date'], 'currency': k, 'rate': v
-                }
-                df = df.append(tmp, ignore_index=True)
+            df = pd.DataFrame(json.loads(json.dumps(get_current_rates())))
 
             # test to see if replication is needed
             catalog_max_time = catalogue.CatalogueMethods() \
                 .get_max_time_from_catalogue(table='exchangeratesmodel', data_source='exchangeratesmodel.io')
-            df_max_time = df['date'].max()
+            df_max_time = df['end_at'].max()
 
             if catalog_max_time < df_max_time:
                 # write to catalog with new max timestamp
-                self.update_catalogue(column_name='date', column_time=df['date'].max(),
+                self.update_catalogue(column_name='end_at', column_time=df['end_at'].max(),
                                       table_name='exchangeratesmodel', app_run_time=datetime.now(),
                                       database='exchangeratesmodel.io')
 
