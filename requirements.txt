@@ -23,7 +23,7 @@ pyparsing==2.4.7
 pytz==2020.1
 pywin32-ctypes==0.2.0
 readme-renderer==26.0
-requests==2.23.0
+requests==2.25.1
 requests-toolbelt==0.9.1
 six==1.15.0
 tqdm==4.46.0
