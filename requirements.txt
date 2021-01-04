@@ -38,4 +38,4 @@ boto3~=1.13.12
 mysql-connector-python~=8.0.20
 pandas~=1.0.3
 psycopg2~=2.8.5
-setuptools~=47.1.1
+setuptools~=51.1.1
